@@ -1,6 +1,6 @@
 # qt/tool_window.py
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Signal
 
 class ToolWindow(QWidget):
     """所有工具窗口的基类，统一管理关闭事件"""
