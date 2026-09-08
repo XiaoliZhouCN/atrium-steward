@@ -1,4 +1,7 @@
-# web/flask_app.py
+# ChestSteward/web/flask_app.py
+"""
+flask_app 暂时不适用
+"""
 from flask import Flask, render_template_string
 
 app = Flask(__name__)

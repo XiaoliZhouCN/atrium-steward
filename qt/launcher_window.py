@@ -1,24 +1,29 @@
-# qt/launcher_window.py
+# ChestSteward/qt/launcher_window.py
+"""
+launcher_window 唤起主界面
+"""
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QPushButton, 
     QLineEdit, QLabel, QFrame
 )
 from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve
+from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QFont, QColor, QPalette
 
 class LauncherWindow(QWidget):
     """主面板：轻量启动器，类似 Spotlight"""
     tool_triggered = Signal(str)  # 工具名称 → 唤起对应窗口
+    closed = Signal()  # 主面板关闭时通知主窗口
     
     def __init__(self):
         super().__init__()
         # 窗口属性：置顶、无边框、半透明背景
         self.setWindowFlags(
-            Qt.WindowStaysOnTopHint | 
-            Qt.FramelessWindowHint | 
-            Qt.Tool
+            Qt.WindowType.WindowStaysOnTopHint | 
+            Qt.WindowType.FramelessWindowHint | 
+            Qt.WindowType.Tool
         )
-        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(560, 340)
         
         # 主容器（带圆角和半透明背景）
@@ -41,24 +46,6 @@ class LauncherWindow(QWidget):
         title.setStyleSheet("color: #ffffff; font-size: 20px; font-weight: 600;")
         layout.addWidget(title)
         
-        # 搜索框（占位，后续可扩展为快速搜索）
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("输入工具名称或快捷键...")
-        self.search_input.setStyleSheet("""
-            QLineEdit {
-                background-color: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 8px 12px;
-                color: #ffffff;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border-color: rgba(100, 150, 255, 0.5);
-            }
-        """)
-        layout.addWidget(self.search_input)
-        
         # 工具网格
         grid = QGridLayout()
         grid.setSpacing(10)
@@ -66,7 +53,6 @@ class LauncherWindow(QWidget):
         # 定义工具列表：(显示名称, 内部标识)
         tools = [
             ("🎨 取色器", "colorpicker"),
-            ("📊 色度图", "chromaticity"),
             ("📝 Mermaid", "mermaid"),
             ("📁 项目看板", "dashboard"),
             ("⚙️ 设置", "settings"),
@@ -98,15 +84,15 @@ class LauncherWindow(QWidget):
         layout.addLayout(grid)
         
         # 底部提示
-        hint = QLabel("⌘ Space 唤起 / 隐藏  |  ESC 关闭")
+        hint = QLabel("shift + ctrl + space 唤起 / 隐藏  |  ESC 关闭")
         hint.setStyleSheet("color: rgba(255,255,255,0.35); font-size: 11px;")
-        hint.setAlignment(Qt.AlignCenter)
+        hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(hint)
         
         # 动画
         self.animation = QPropertyAnimation(self, b"windowOpacity")
         self.animation.setDuration(150)
-        self.animation.setEasingCurve(QEasingCurve.OutCubic)
+        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
     
     def show_with_animation(self):
         """带淡入动画的显示"""
@@ -114,7 +100,6 @@ class LauncherWindow(QWidget):
         self.animation.setEndValue(1.0)
         self.show()
         self.animation.start()
-        self.search_input.setFocus()
     
     def hide_with_animation(self):
         """带淡出动画的隐藏"""
@@ -125,6 +110,7 @@ class LauncherWindow(QWidget):
     
     def keyPressEvent(self, event):
         """ESC 键关闭主面板"""
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             self.hide_with_animation()
+            return
         super().keyPressEvent(event)

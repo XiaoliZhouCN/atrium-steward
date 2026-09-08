@@ -1,21 +1,12 @@
-# qt/tools/colorpicker_window.py
+# ChestSteward/qt/tools/colorpicker_window.py
+"""
+colorpicker_window
+"""
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGroupBox, QGridLayout 
 from PySide6.QtCore import Qt, QTimer
 from ..tool_window import ToolWindow
-import colorpicker
+from colorpicker import ScreenCapturer, GeometryProvider
 
-try:
-    from colorpicker import ScreenCapturer, GeometryProvider
-except ImportError:
-    # 如果导入失败（比如未安装），给出友好提示
-    print("警告：无法导入 ChestPyTools，取色功能不可用。")
-    # 定义占位类
-    class ScreenCapturer:
-        def capture_pixel(self, x, y):
-            return (0.5, 0.5, 0.5)
-    class GeometryProvider:
-        def mouse_location(self):
-            return (0.0, 0.0)
 class ColorPickerWindow(ToolWindow):
     """屏幕取色器工具窗口（真实取色逻辑）"""
 
@@ -34,13 +25,13 @@ class ColorPickerWindow(ToolWindow):
         # 标题
         title = QLabel("🎨 屏幕取色器")
         title.setStyleSheet("font-size: 18px; font-weight: 600;")
-        layout.addWidget(title, alignment=Qt.AlignCenter)
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # 色块显示
         self.swatch = QLabel()
         self.swatch.setFixedSize(240, 140)
         self.swatch.setStyleSheet("background-color: #6c5ce7; border-radius: 10px; border: 2px solid #444;")
-        layout.addWidget(self.swatch, alignment=Qt.AlignCenter)
+        layout.addWidget(self.swatch, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # 数值显示区域（使用网格布局）
         value_group = QGroupBox("颜色值")
@@ -72,13 +63,14 @@ class ColorPickerWindow(ToolWindow):
         self.pick_btn = QPushButton("📸 单次取色")
         self.pick_btn.setFixedWidth(120)
         self.pick_btn.clicked.connect(self.pick_once)
-        btn_layout.addWidget(self.pick_btn, alignment=Qt.AlignCenter)
+        btn_layout.addWidget(self.pick_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.auto_btn = QPushButton("▶ 自动取色")
         self.auto_btn.setFixedWidth(120)
         self.auto_btn.setCheckable(True)
         self.auto_btn.clicked.connect(self.toggle_auto_pick)
-        btn_layout.addWidget(self.auto_btn, alignment=Qt.AlignCenter)
+        btn_layout.addWidget(self.auto_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
 
         layout.addLayout(btn_layout)
 

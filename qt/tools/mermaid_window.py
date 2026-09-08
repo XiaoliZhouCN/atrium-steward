@@ -1,4 +1,7 @@
-# qt/tools/mermaid_window.py
+# ChestSteward/qt/tools/mermaid_window.py
+"""
+mermaid_window
+"""
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout
 from PySide6.QtCore import Qt
 from ..tool_window import ToolWindow
@@ -36,7 +39,7 @@ class MermaidWindow(ToolWindow):
         # 预览占位
         preview_hint = QLabel("📊 预览区域（后续接入 WebView + Mermaid.js）")
         preview_hint.setStyleSheet("background-color: #1e1e1e; color: #aaa; padding: 40px; border-radius: 8px;")
-        preview_hint.setAlignment(Qt.AlignCenter)
+        preview_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(preview_hint)
     
     def render_preview(self):

@@ -1,4 +1,8 @@
-# qt/bridge.py
+# ChestSteward/qt/bridge.py
+"""
+Qt WebChannel 通信桥梁
+
+"""
 from PySide6.QtCore import QObject, Signal, Slot
 import json
 
