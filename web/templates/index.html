@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChestSteward 本地预览页</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+            background: #111318;
+            color: #e8ecf3;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, rgba(79, 140, 255, 0.16), transparent 28%),
+                linear-gradient(180deg, #111318 0%, #161b22 100%);
+        }
+
+        main {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 32px 24px 48px;
+        }
+
+        .hero {
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #a8b3c7;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(23, 27, 36, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .muted {
+            color: #9aa7bd;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        button {
+            appearance: none;
+            border: 1px solid rgba(117, 155, 255, 0.28);
+            border-radius: 10px;
+            padding: 10px 16px;
+            background: rgba(74, 110, 219, 0.18);
+            color: #eef4ff;
+            cursor: pointer;
+            transition: background-color 120ms ease, border-color 120ms ease;
+        }
+
+        button:hover {
+            background: rgba(74, 110, 219, 0.32);
+            border-color: rgba(117, 155, 255, 0.5);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 260px;
+            resize: vertical;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            background: #0f141b;
+            color: #ecf2ff;
+            font: 14px/1.6 Consolas, "Courier New", monospace;
+        }
+
+        .status,
+        .message-box,
+        .preview-box {
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: #0f141b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .status strong {
+            color: #8cc5ff;
+        }
+
+        .message-box,
+        .preview-box {
+            margin-top: 14px;
+            min-height: 88px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .tip-list {
+            margin: 12px 0 0;
+            padding-left: 18px;
+            color: #c6cfdf;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 860px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="hero">
+            <h1>ChestSteward 本地预览页</h1>
+            <p>
+                这是离线调试页面，不依赖公网 CDN。
+                当前主要用于验证 Qt WebChannel 通道和本地预览容器是否正常工作。
+            </p>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <h2>WebChannel 调试</h2>
+                <p class="muted">
+                    右侧会显示页面当前状态。你可以先点击 Ping，再把 Mermaid 文本发送给 Python 侧。
+                </p>
+
+                <div class="toolbar">
+                    <button id="ping-btn" type="button">Ping Python</button>
+                    <button id="send-mermaid-btn" type="button">发送 Mermaid 文本</button>
+                </div>
+
+                <label for="mermaid-input" class="muted">Mermaid 源码（当前仅做离线文本桥接）</label>
+                <textarea id="mermaid-input">graph TD
+    A[Launcher] --> B[Tool Registry]
+    B --> C[Tool Window]
+    C --> D[Offline Web Canvas]</textarea>
+
+                <div class="preview-box" id="preview-box">等待输入...</div>
+            </article>
+
+            <aside class="panel">
+                <h2>运行状态</h2>
+                <div class="status" id="status-box">
+                    <strong>初始化中...</strong>
+                </div>
+
+                <div class="message-box" id="message-box">尚未收到来自 Python 的消息。</div>
+
+                <ul class="tip-list">
+                    <li>页面样式全部为内联本地 CSS。</li>
+                    <li>仅依赖 Qt 提供的 <code>qrc:///qtwebchannel/qwebchannel.js</code>。</li>
+                    <li>不会再调用不存在的 <code>bridge.pick_color()</code> 接口。</li>
+                </ul>
+            </aside>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusBox = document.getElementById('status-box');
+            const messageBox = document.getElementById('message-box');
+            const previewBox = document.getElementById('preview-box');
+            const mermaidInput = document.getElementById('mermaid-input');
+            const pingButton = document.getElementById('ping-btn');
+            const sendButton = document.getElementById('send-mermaid-btn');
+
+            previewBox.textContent = mermaidInput.value;
+
+            if (typeof QWebChannel === 'undefined') {
+                statusBox.innerHTML = '<strong>QWebChannel 未加载</strong><div class="muted">当前页面可离线展示，但无法与 Qt 侧通信。</div>';
+                return;
+            }
+
+            // 创建 QWebChannel 实例
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                const bridge = channel.objects.bridge;
+                if (!bridge) {
+                    statusBox.innerHTML = '<strong>bridge 对象不可用</strong><div class="muted">页面已加载，但 Python 侧尚未挂接桥接对象。</div>';
+                    return;
+                }
+
+                statusBox.innerHTML = '<strong>WebChannel 已连接</strong><div class="muted">可以向 Python 侧发送 Ping 或 Mermaid 文本。</div>';
+
+                bridge.messageSent.connect(function(message) {
+                    messageBox.textContent = message;
+                });
+
+                pingButton.addEventListener('click', function() {
+                    bridge.ping();
+                });
+
+                sendButton.addEventListener('click', function() {
+                    const source = mermaidInput.value;
+                    previewBox.textContent = source;
+                    bridge.render_mermaid(source);
+                });
+            });
+        });
+    </script>
+</body>
