@@ -1,6 +1,8 @@
 Flask>=2.3.0
 Jinja2>=3.0.0
-PySide6>=6.5.0
-PySide6-Addons>=6.5.0
+PySide6>=6.6.1,<7
+PySide6-Addons>=6.6.1,<7
 PyYAML>=6.0
-keyboard>=0.13.0
+keyboard>=0.13.5
+pywin32>=306; sys_platform == "win32"
+-e ../AtriumPyTools/tools/colorpicker

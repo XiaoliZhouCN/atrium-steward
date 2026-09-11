@@ -1,4 +1,4 @@
-# WORKSPACE_SPECIFICATION.md（v4）
+# WORKSPACE\_SPECIFICATION.md（v4）
 
 > **主要变更**
 >
@@ -8,16 +8,16 @@
 > 4. **V1 边界收紧**：V1 强制支持单实例；系统托盘不进入 V1；全局热键暂列为 `pending`。
 > 5. **工程风格调整**：代码以清晰、可维护、可手工接管为优先目标，避免过度包装。
 
----
+***
 
 # Manager 工作区规范手册
 
-> **版本**：v4.0（Launcher First / Offline First）  
-> **生效日期**：2026-09-04  
-> **适用范围**：`./Manager/` 下所有仓库  
-> **维护者**：ChestSteward（总控仓库）
+> **版本**：v4.0（Launcher First / Offline First）\
+> **生效日期**：2026-09-04\
+> **适用范围**：`./Repositories/` 下所有仓库\
+> **维护者**：AtriumSteward（总控仓库）
 
----
+***
 
 ## 1. 总体设计哲学
 
@@ -32,35 +32,36 @@
 7. **简单优先**：优先选择结构清晰、人工可维护的方案，避免过度工程化。
 8. 每个工具/项目目录下必须包含 `Docs/ARCHITECTURE_DESIGN.md`。
 
----
+***
 
 ## 2. 物理目录布局
 
 ```text
-./Manager/
-├── manager/
+D:/Repositories/
+├── Manager/
 │   ├── ChestSteward/
 │   ├── ChestPyTools/
 │   └── ChestNote/
-├── projects/
+├── Projects/
 │   ├── NexusRenderer/
 │   ├── CMSSystem/
 │   └── (future projects...)
-└── storage/
-    ├── .gitignore
-    ├── data/
-    ├── outputs/
-    ├── cache/
-    └── shared_assets/
+├── Storage/
+│   ├── .gitignore
+│   ├── data/
+│   ├── outputs/
+│   ├── cache/
+│   └── shared_assets/
+└── DeepseekHarness/
 ```
 
 **红线规则**：
 
-- `manager/` 下仓库数量保持稳定，原则上不超过 5 个。
-- `projects/` 下严禁创建与 `manager/` 同名的仓库。
-- `storage/` 默认全部忽略，仅保留目录骨架。
+- `Manager/` 下仓库数量保持稳定，原则上不超过 5 个。
+- `Projects/` 下严禁创建与 `Manager/` 同名的仓库。
+- `Storage/` 默认全部忽略，仅保留目录骨架。
 
----
+***
 
 ## 3. 各仓库职责与规范
 
@@ -88,6 +89,7 @@
 - Web 画布是 **本地预览组件**，不是联网浏览器。
 - 默认不依赖公网 CDN、外部 API 或在线脚本。
 - 如无必要，**不引入 Flask**；若未来确需本地 HTTP，仅允许用于本机回环地址和离线资源服务。
+  - \[mark] 可以引入，但目前不着重开发。
 - V1 **必须支持单实例**。
 - 全局热键暂列 `pending`，不是 V1 阻塞项。
 - 系统托盘优先级最低，不进入 V1 必选项。
@@ -144,7 +146,7 @@ ChestSteward/
 - 工具入口必须统一注册到 `tool_registry.py`，禁止在多个文件重复硬编码。
 - 轻量注册表可以显式声明窗口类与元数据，但**不要求**做复杂的动态发现系统。
 
----
+***
 
 ### 3.2 ChestPyTools（纯工具库）
 
@@ -161,7 +163,7 @@ ChestSteward/
 - ChestSteward 通过直接 import 调用工具能力。
 - 例如取色工具优先复用 `colorpicker.sample_at()`、`colorpicker.sample_at_cursor()` 这类纯函数接口。
 
----
+***
 
 ### 3.3 ChestNote（知识库）
 
@@ -171,7 +173,7 @@ ChestSteward/
 - Frontmatter 必须包含 `title`、`tags`、`created_at`。
 - 导出索引仅作缓存，禁止手工修改。
 
----
+***
 
 ### 3.4 `projects/` 下项目规范
 
@@ -181,7 +183,7 @@ ChestSteward/
 - `Runtime/` 层禁止引入 GUI 框架。
 - 项目根目录必须包含 `project_status.yaml` 供 ChestSteward 扫描。
 
----
+***
 
 ## 4. 跨仓库链接策略
 
@@ -222,7 +224,7 @@ class ToolSpec:
 - 主程序根据注册表创建窗口实例。
 - 不采用隐式扫描目录自动注册，避免维护成本失控。
 
----
+***
 
 ## 5. ChestSteward 的产品边界
 
@@ -242,24 +244,24 @@ class ToolSpec:
 - 色度图完整功能
 - 在线服务能力
 
----
+***
 
 ## 6. 红线规则汇总
 
-| 编号 | 规则 | 适用范围 |
-| :-- | :-- | :-- |
-| R1 | `manager/` 与 `projects/` 必须物理隔离 | 全局 |
-| R2 | `projects/` 下禁止创建与 `manager/` 同名仓库 | 全局 |
-| R3 | ChestPyTools 严禁引入 UI 框架 | ChestPyTools |
-| R4 | ChestPyTools 严禁返回 UI 控件 | ChestPyTools |
-| R5 | ChestSteward 的 `core/` 严禁依赖 Qt / WebView | ChestSteward |
-| R6 | 高频交互必须优先使用 Qt 原生控件 | ChestSteward |
-| R7 | Web 画布必须支持离线运行，禁止依赖公网资源 | ChestSteward |
-| R8 | 工具入口必须通过注册表统一管理 | ChestSteward |
-| R9 | V1 必须支持单实例 | ChestSteward |
-| R10 | 代码组织必须保持可人工维护，禁止无必要的复杂封装 | 全局 |
+| 编号  | 规则                                       | 适用范围         |
+| :-- | :--------------------------------------- | :----------- |
+| R1  | `manager/` 与 `projects/` 必须物理隔离          | 全局           |
+| R2  | `projects/` 下禁止创建与 `manager/` 同名仓库       | 全局           |
+| R3  | ChestPyTools 严禁引入 UI 框架                  | ChestPyTools |
+| R4  | ChestPyTools 严禁返回 UI 控件                  | ChestPyTools |
+| R5  | ChestSteward 的 `core/` 严禁依赖 Qt / WebView | ChestSteward |
+| R6  | 高频交互必须优先使用 Qt 原生控件                       | ChestSteward |
+| R7  | Web 画布必须支持离线运行，禁止依赖公网资源                  | ChestSteward |
+| R8  | 工具入口必须通过注册表统一管理                          | ChestSteward |
+| R9  | V1 必须支持单实例                               | ChestSteward |
+| R10 | 代码组织必须保持可人工维护，禁止无必要的复杂封装                 | 全局           |
 
----
+***
 
 ## 7. 快速参考
 
@@ -276,3 +278,4 @@ class ToolSpec:
 - `Docs/` 下保留当前生效版本文档。
 - 历史版本统一移入 `Docs/stored/`。
 - 归档文件命名保留版本号，不覆盖旧文件。
+
