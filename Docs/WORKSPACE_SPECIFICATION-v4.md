@@ -21,9 +21,12 @@
 
 ## 1. 总体设计哲学
 
+- 唯一虚拟环境:G:\Repositories\Manager\.venv
+    所有仓库都在该虚拟环境中运行，不允许创建独立虚拟环境。
+
 本工作区遵循以下原则：
 
-1. **关注点分离**：`manager/` 与 `projects/` 物理隔离。
+1. **关注点分离**：`Manager/` 与 `Projects/` 物理隔离。
 2. **约定优于配置**：统一目录结构和命名，减少额外决策。
 3. **零信任数据入口**：核心数据由脚本写入，避免手工脏数据。
 4. **UI 与逻辑解耦**：Qt 负责界面，PyTools 负责纯数据与算法。
@@ -44,7 +47,7 @@ D:/Repositories/
 │   └── ChestNote/
 ├── Projects/
 │   ├── NexusRenderer/
-│   ├── CMSSystem/
+│   ├── ChromaCMS/
 │   └── (future projects...)
 ├── Storage/
 │   ├── .gitignore
