@@ -1,6 +1,6 @@
 # AtriumSteward
 
-AtriumSteward 是 `Manager` 工作区中的桌面总控器，当前阶段按 `Launcher First / Offline First` 的 v4 基线推进。
+AtriumSteward 是 `Manager` 工作区中的桌面总控器。当前代码实现仍以 Python 版 v4 基线为运行基础，但后续架构演进以 v5 方案为准；`v4` 文档保留为归档，`v5` 文档定义新的重构方向。
 
 当前已落地的主链路：
 
@@ -128,7 +128,7 @@ Get-ChildItem "D:\Repositories\.venv\bin"
 
 ## 当前实现状态
 
-当前仓库已经基本切到 v4 方向，但还没有完全对齐规范，主要差异有：
+当前仓库仍处于 Python v4 基线到 v5 重构方案之间的过渡阶段，主要差异有：
 
 - `main.py` 仍保留全局热键和系统托盘逻辑，而这两项在 v4 中不是 V1 优先级
 - 还没有单实例实现
@@ -138,5 +138,6 @@ Get-ChildItem "D:\Repositories\.venv\bin"
 
 ## 文档
 
-- 工作区规范：[Docs/WORKSPACE_SPECIFICATION-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/WORKSPACE_SPECIFICATION-v4.md)
-- 架构设计：[Docs/ARCHITECTURE_DESIGN-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/ARCHITECTURE_DESIGN-v4.md)
+- 工作区规范（v4 归档）：[Docs/WORKSPACE_SPECIFICATION-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/WORKSPACE_SPECIFICATION-v4.md)
+- 架构设计（v4 归档）：[Docs/ARCHITECTURE_DESIGN-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/ARCHITECTURE_DESIGN-v4.md)
+- 架构设计（v5 当前方案）：[Docs/ARCHITECTURE_DESIGN-v5.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/ARCHITECTURE_DESIGN-v5.md)
