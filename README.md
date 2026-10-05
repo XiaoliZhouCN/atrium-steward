@@ -1,143 +1,99 @@
 # AtriumSteward
 
-AtriumSteward 是 `Manager` 工作区中的桌面总控器。当前代码实现仍以 Python 版 v4 基线为运行基础，但后续架构演进以 v5 方案为准；`v4` 文档保留为归档，`v5` 文档定义新的重构方向。
+`Manager` 工作区的**常驻主控器**：管理工具进程、维护工作区上下文、提供轻量入口面板。
 
-当前已落地的主链路：
+本仓库同时是**工作区级文档的唯一权威来源**（见 §文档）。
 
-- `Launcher` 主面板
-- 轻量工具注册表
-- `ColorPicker` 工具窗口
-- `Mermaid` 占位窗口
+## 当前状态
 
-当前仍在演进中的能力：
+Python 过渡基线可运行，目标架构（C++ 宿主）尚未开工。
 
-- 单实例约束
-- 真正的离线 Web 画布
-- 配置加载与仓库扫描
+**已落地**
 
-## 技术基线
+| 能力 | 位置 |
+| :-- | :-- |
+| Launcher 主面板（Spotlight 式，含淡入淡出与 ESC 关闭） | `qt/launcher_window.py` |
+| 轻量工具注册表（唯一工具清单来源） | `core/tool_registry.py` |
+| 工具窗口基类（统一关闭信号与置顶切换） | `qt/tool_window.py` |
+| 取色器工具窗口（调用 `colorpicker` 纯函数） | `qt/tools/colorpicker_window.py` |
+| 单实例约束（`QLocalServer` 命名 socket + 激活唤起） | `main.py` |
+| 全局热键 `Ctrl+Shift+Space`、系统托盘 | `main.py` |
 
-- Python 3.11+
-- PySide6
-- 本地工作区依赖：`AtriumPyTools/tools/colorpicker`
+**占位 / 未完成**
 
-说明：
+| 项 | 现状 |
+| :-- | :-- |
+| `core/config_loader.py`、`core/repo_scanner.py` | 只有一行 docstring，无实现 |
+| `config.yaml`、`pyproject.toml`、`launchers/*.bat` | 0 字节空文件 |
+| `tests/` | 不存在 |
+| `web/flask_app.py` | 旧探索代码，且引用公网 CDN，违反离线原则，待删除 |
+| `web/templates/index.html` | 同上，待改造为纯离线画布 |
+| `qt/bridge.py` | WebChannel 占位，未接线 |
+| `qt/tools/mermaid_window.py` | 占位窗口 |
 
-- 当前代码通过 `from colorpicker import sample_at_cursor` 直接依赖 `colorpicker` 顶层包。
-- 因此这里应安装 `AtriumPyTools/tools/colorpicker` 这个子包，而不是仅安装 `AtriumPyTools` 仓库根包。
+**待办**：按 `Docs/ARCHITECTURE_DESIGN.md` §6 拆分 `main.py`，建立 `steward_app/{runtime,core,ui,integrations}` 四层，清理 Flask 遗留，补最小测试。
 
 ## 目录结构
 
 ```text
 AtriumSteward/
-├── core/
-├── qt/
-│   ├── resources/
-│   └── tools/
-├── web/
-├── Docs/
-├── main.py
-├── config.yaml
-└── requirements.txt
+├── main.py                     # 入口：单实例、热键、托盘、窗口协调
+├── requirements.txt
+├── config.yaml                 # 空，待补
+├── core/                       # 纯逻辑层（禁止依赖 Qt）
+│   ├── tool_registry.py
+│   ├── config_loader.py        # 空
+│   └── repo_scanner.py         # 空
+├── qt/                         # 界面层
+│   ├── launcher_window.py
+│   ├── tool_window.py
+│   ├── bridge.py
+│   ├── resources/style.qss
+│   └── tools/{colorpicker,mermaid}_window.py
+├── web/                        # 本地离线画布（待清理）
+├── AGENTS.md                   # Agent 协作边界
+└── Docs/
+    ├── WORKSPACE_SPECIFICATION.md   # 工作区级规范（权威）
+    └── ARCHITECTURE_DESIGN.md       # 本仓库架构设计
 ```
 
-## 安装
+## 环境
 
-本项目约定使用共享虚拟环境：`D:\Repositories\.venv`。
+**唯一共享虚拟环境**：`D:\Repositories\Manager\.venv`（Python 3.14.2）。
 
-### 1. 检查共享虚拟环境
-
-PowerShell:
+实测已安装：`PySide6`、`keyboard`、`pywin32`、`PyYAML`、`Flask`。
+**缺**：`colorpicker`（需以可编辑方式安装，否则 `main.py` 的 `from colorpicker import ...` 会失败）。
 
 ```powershell
-Get-ChildItem "D:\Repositories\.venv\bin"
-& "D:\Repositories\.venv\bin\python.exe" -V
+# 安装缺失的本地工具包
+& "D:\Repositories\Manager\.venv\Scripts\python.exe" -m pip install -e "D:\Repositories\Manager\AtriumPyTools\tools\colorpicker"
 ```
 
-说明：
-
-- 这个环境虽然在 Windows 上，但可执行文件位于 `bin/`，不是常见的 `Scripts/`。
-
-### 2. 安装项目依赖
-
-在 `AtriumSteward` 根目录执行：
-
-```powershell
-& "D:\Repositories\.venv\bin\python.exe" -m pip install --upgrade pip
-& "D:\Repositories\.venv\bin\python.exe" -m pip install -r "D:\Repositories\Manager\AtriumSteward\requirements.txt"
-```
-
-当前验证结果：
-
-- `D:\Repositories\.venv` 的 Python 兼容标签为 `cp312-*-mingw_x86_64_ucrt_gnu`
-- `PySide6` 官方 wheel 不提供这组 Windows MinGW 标签
-- 因此上述命令在当前共享环境中会卡在 `PySide6` 安装阶段，项目无法完整落依赖
-
-也就是说，`requirements.txt` 写法本身没有问题，但这个共享虚拟环境当前不适合作为 AtriumSteward 的 Qt 运行环境。
-
-`requirements.txt` 中已经包含本地可编辑依赖：
-
-```text
--e ../AtriumPyTools/tools/colorpicker
-```
-
-这表示 `pip` 会从当前工作区直接安装 `colorpicker`，适合联动开发。
-
-### 3. 如需手动单独安装本地包
-
-如果你只想先安装 `colorpicker`，可以单独执行：
-
-```powershell
-& "D:\Repositories\.venv\bin\python.exe" -m pip install -e "D:\Repositories\Manager\AtriumPyTools\tools\colorpicker"
-```
-
-### 4. 推荐的可运行方案
-
-如果你要马上运行 AtriumSteward，推荐二选一：
-
-1. 重建 `D:\Repositories\.venv`，使用官方 Windows CPython 3.11 或 3.12 创建共享环境
-2. 直接使用项目内已可用的 `D:\Repositories\Manager\AtriumSteward\.venv`
-
-项目内环境的依赖现状已经包含：
-
-- `PySide6`
-- `keyboard`
-- `pywin32`
-- `colorpicker`
+> `colorpicker` 的顶层包名就是 `colorpicker`，因此必须安装 `AtriumPyTools/tools/colorpicker` 这个子包，而不是 `AtriumPyTools` 仓库根包。
 
 ## 运行
 
-共享环境重建完成后可执行：
-
 ```powershell
-& "D:\Repositories\.venv\bin\python.exe" "D:\Repositories\Manager\AtriumSteward\main.py"
+& "D:\Repositories\Manager\.venv\Scripts\python.exe" "D:\Repositories\Manager\AtriumSteward\main.py"
 ```
 
-当前立即可执行的替代命令：
+## 红线
 
-```powershell
-& "D:\Repositories\Manager\AtriumSteward\.venv\Scripts\python.exe" "D:\Repositories\Manager\AtriumSteward\main.py"
-```
-
-## 当前依赖说明
-
-- `PySide6`：Qt 桌面界面
-- `keyboard`：当前热键注册实现
-- `pywin32`：`colorpicker` 的 Windows 鼠标坐标读取依赖
-- `colorpicker`：来自 `AtriumPyTools/tools/colorpicker` 的本地包
-
-## 当前实现状态
-
-当前仓库仍处于 Python v4 基线到 v5 重构方案之间的过渡阶段，主要差异有：
-
-- `main.py` 仍保留全局热键和系统托盘逻辑，而这两项在 v4 中不是 V1 优先级
-- 还没有单实例实现
-- `web/flask_app.py` 仍是旧探索代码，与“默认不引入 Flask”的基线不一致
-- `core/` 目录尚未补齐 `config_loader.py`、`repo_scanner.py`、`models.py`
-- `tests/` 目录目前为空
+- `core/` 严禁依赖 `PySide6` / `QWebEngineView`（见架构文档 §3.2）。
+- `qt/` 只负责界面、窗口状态与信号连接。
+- 工具入口必须统一注册到 `core/tool_registry.py`，禁止多处硬编码。
+- 工具接入必须经过注册表与协议，禁止隐式源码直连。
+- Web 画布必须离线可运行，禁止依赖公网资源。
 
 ## 文档
 
-- 工作区规范（v4 归档）：[Docs/WORKSPACE_SPECIFICATION-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/WORKSPACE_SPECIFICATION-v4.md)
-- 架构设计（v4 归档）：[Docs/ARCHITECTURE_DESIGN-v4.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/ARCHITECTURE_DESIGN-v4.md)
-- 架构设计（v5 当前方案）：[Docs/ARCHITECTURE_DESIGN-v5.md](file:///D:/Repositories/Manager/AtriumSteward/Docs/ARCHITECTURE_DESIGN-v5.md)
+| 文档 | 内容 |
+| :-- | :-- |
+| [`Docs/WORKSPACE_SPECIFICATION.md`](Docs/WORKSPACE_SPECIFICATION.md) | **工作区级规范**：目录红线、仓库职责、文档规范、角色权限、待决项 |
+| [`Docs/AGENT_ROLES.md`](Docs/AGENT_ROLES.md) | **工作区级角色与权限**：建设 / 掌籍 / 视务三档位的定义、叠加与降级规则、管家映射、子仓库 `AGENTS.md` 的 `[MARK]` 扩写规则 |
+| [`Docs/ARCHITECTURE_DESIGN.md`](Docs/ARCHITECTURE_DESIGN.md) | 本仓库架构：分层、契约、C++ 迁移计划 |
+| [`README_BRANCHES.md`](README_BRANCHES.md) | 工作区分支总览 |
+| [`AGENTS.md`](AGENTS.md) | Agent 协作边界与验证要求 |
+| [`Docs/AGENTS_ROLES.md`](Docs/AGENTS_ROLES.md) | 本仓库管家设计：Konstantine（秩序与计划）/ Gui（图形与实现）/ Chestnut（日子与痕迹）的个性、职责分区与协作机制 |
+
+历史版本（v1–v4 的规范与架构）已删除，需要时用 `git log --diff-filter=D --name-only` 与 `git show` 取回。
